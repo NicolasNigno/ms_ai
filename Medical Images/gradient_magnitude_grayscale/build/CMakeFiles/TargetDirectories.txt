@@ -1,0 +1,3 @@
+/home/nicolas/Documents/github/ms_ai/Medical Images/gradient_magnitude_grayscale/build/CMakeFiles/edit_cache.dir
+/home/nicolas/Documents/github/ms_ai/Medical Images/gradient_magnitude_grayscale/build/CMakeFiles/rebuild_cache.dir
+/home/nicolas/Documents/github/ms_ai/Medical Images/gradient_magnitude_grayscale/build/CMakeFiles/gmg.dir
