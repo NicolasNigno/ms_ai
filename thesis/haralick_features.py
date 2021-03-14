@@ -127,15 +127,14 @@ spatial_dependence_matrix = {'horizontal': processMatrix_horizontal,
                             'l_diagonal': processMatrix_l_diagonal,
                             'r_diagonal': processMatrix_r_diagonal}
 
-chanels = { 'blue': blue,
-            'green': green,
-            'red': red}
-
 for image in images:
     try:
         os.chdir(images_path)
         pic = cv2.imread(image, cv2.IMREAD_COLOR)
         blue, green, red = cv2.split(pic)
+        chanels = { 'blue': blue,
+                    'green': green,
+                    'red': red}
         for chanel in chanels:
             matrix = chanels[chanel]
             test = matrix.copy()[0:100, 0:100]
