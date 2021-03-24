@@ -1,10 +1,5 @@
-import cv2
 import numpy as np
-import os
 from skimage.feature import greycomatrix
-import pandas as pd
-from multiprocessing import Pool
-import multiprocessing
 
 def horizontalGTSDM(window, levels):
     result = greycomatrix(window, [1], [0], levels=levels, normed=True, symmetric=True)
@@ -66,89 +61,31 @@ def getCorrelation(matrix):
     
     return correlation_value
 
-def getDictMatrices(matrix, window_size):
-    row_first = 0
-    row_last = window_size
-    center = int((window_size-1)/2)
-    dict_of_matrices = []
-    keys = []
-
-    for i in range(matrix.shape[0] + 1):
-        
-        if row_last == matrix.shape[1] + 1:
-            break
-        
-        column_first = 0
-        column_last = window_size
-        for j in range(matrix.shape[1] + 1):
-            
-            if column_last == matrix.shape[1] + 1:
-                break
-            
-            window = matrix[row_first:row_last, column_first:column_last]
-            key_name = 'cell_%s_%s'%(row_first + center, column_first + center)
-            dict_of_matrices.append(window)
-            keys.append(key_name)
-            column_first+=1
-            column_last+=1
-
-        row_first+=1
-        row_last+=1
+def variance(matrix, level):
+    mu = np.sum(matrix)/(level**2)
+    variance = 0
     
-    return dict_of_matrices, keys
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            variance += ((i - mu)**2) * (matrix[i][j])
+    
+    return variance
 
-def processMatrix_horizontal(matrix):
-    image_horizontal = horizontalGTSDM(matrix, 256)
+def inverseDifferenceMoment(matrix):
+    idm = 0
+    
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            idm += (matrix[i][j]) / (1 + ((i-j)**2))
+    
+    return idm
 
-    return [ASM(image_horizontal), constrast(image_horizontal), getCorrelation(image_horizontal)]
-
-def processMatrix_vertical(matrix):
-    image_vertical = verticalGTSDM(matrix, 256)
-
-    return [ASM(image_vertical), constrast(image_vertical), getCorrelation(image_vertical)]
-
-def processMatrix_l_diagonal(matrix):
-    image_l_diagonal = l_diagonalGTSDM(matrix, 256)
-
-    return [ASM(image_l_diagonal), constrast(image_l_diagonal), getCorrelation(image_l_diagonal)]
-
-def processMatrix_r_diagonal(matrix):
-    image_r_diagonal = r_diagonalGTSDM(matrix, 256)
-
-    return [ASM(image_r_diagonal), constrast(image_r_diagonal), getCorrelation(image_r_diagonal)]
-
-images_path = '/home/nicolas/Documents/tesis/pca_imagenes/'
-csv_path = '/home/nicolas/Documents/tesis/haralick_features/'
-images = os.listdir()
-num_cores = multiprocessing.cpu_count()
-
-spatial_dependence_matrix = {'horizontal': processMatrix_horizontal,
-                            'vertical': processMatrix_vertical,
-                            'l_diagonal': processMatrix_l_diagonal,
-                            'r_diagonal': processMatrix_r_diagonal}
-
-for image in images:
-    try:
-        os.chdir(images_path)
-        pic = cv2.imread(image, cv2.IMREAD_COLOR)
-        blue, green, red = cv2.split(pic)
-        chanels = { 'blue': blue,
-                    'green': green,
-                    'red': red}
-        for chanel in chanels:
-            matrix = chanels[chanel]
-            test = matrix.copy()[0:100, 0:100]
-            list_of_matrices, keys = getDictMatrices(test, 5)
-            for method in spatial_dependence_matrix:
-                pool = Pool(num_cores)
-                result = pool.map(func=spatial_dependence_matrix[method], iterable = list_of_matrices,)
-                data_in_dict = {keys[i]: result[i] for i in range(len(keys))}
-                data_in_pandas = pd.DataFrame.from_dict(data_in_dict, orient='index', 
-                                                        columns=['ASM', 'contrast', 'correlation'])
-                pool.terminate()
-                
-                os.chdir(csv_path)
-                csv_name = '%s_%s_%s.csv'%(image, chanel, method)
-                data_in_pandas.reset_index().to_csv(csv_name, index=False)
-    except:
-        pass
+def entropy(matrix):
+    e = 1e-30
+    entropy = 0
+    
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            entropy += (matrix[i][j]) * np.log(matrix[i][j] + e)
+    
+    return -entropy
