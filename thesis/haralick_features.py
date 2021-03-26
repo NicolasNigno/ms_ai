@@ -38,7 +38,8 @@ def correlation_(matrix, mean_x,  mean_y, std_x, std_y):
     
     for i in range(len(matrix)):
         for j in range(len(matrix)):
-            matrixSum += (i - mean_x) * (j - mean_y) * matrix[i][j]
+            ## ES NECESARIO SUMARLE 1 A LOS ÍNDICES??? NO LO SÉ
+            matrixSum += ((i+1) - mean_x) * ((j+1) - mean_y) * matrix[i][j] 
     
     return matrixSum/(std_x * std_y)
 
@@ -61,13 +62,14 @@ def getCorrelation(matrix):
     
     return correlation_value
 
-def variance(matrix, level):
-    mu = np.sum(matrix)/(level**2)
+def variance(matrix):
+    mu = np.sum(matrix)/(len(matrix)**2)
     variance = 0
     
     for i in range(len(matrix)):
         for j in range(len(matrix)):
-            variance += ((i - mu)**2) * (matrix[i][j])
+            ## ES NECESARIO SUMARLE 1 A LOS ÍNDICES??? NO LO SÉ
+            variance += (((i+1) - mu)**2) * (matrix[i][j])
     
     return variance
 
@@ -89,3 +91,49 @@ def entropy(matrix):
             entropy += (matrix[i][j]) * np.log(matrix[i][j] + e)
     
     return -entropy
+
+def sumAverageMatrix(matrix):
+    sumvector = []
+    new_matrix = np.rot90(matrix.copy(), k=3, axes=(0, 1))
+    indices = list(range(-len(matrix)+1, len(matrix)))
+    indices.reverse()
+    
+    n = np.array(range(2, len(matrix)*2 + 1))
+    
+    for i in indices:
+        sumvector.append(np.trace(new_matrix, offset=i,))
+    
+    sumvector = np.array(sumvector)
+    
+    return n @ sumvector
+
+def sumVarianceMatrix(matrix, sumaverage):
+    sumvector = []
+    new_matrix = np.rot90(matrix.copy(), k=3, axes=(0, 1))
+    indices = list(range(-len(matrix)+1, len(matrix)))
+    indices.reverse()
+    
+    n = list(range(2, len(matrix)*2 + 1))
+    n = [(x-sumaverage)**2 for x in n]
+    n = np.array(n)
+    
+    for i in indices:
+        sumvector.append(np.trace(new_matrix, offset=i,))
+    
+    sumvector = np.array(sumvector)
+    
+    return n @ sumvector
+
+def sumEntropyMatrix(matrix):
+    e = 1e-30
+    sumentropy = 0
+    
+    new_matrix = np.rot90(matrix.copy(), k=3, axes=(0, 1))
+    indices = list(range(-len(matrix)+1, len(matrix)))
+    indices.reverse()
+    
+    for i in indices:
+        intermediate_sum = np.trace(new_matrix, offset=i,)
+        sumentropy += intermediate_sum * np.log(intermediate_sum + e)
+    
+    return -sumentropy
