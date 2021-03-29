@@ -30,14 +30,14 @@ def constrastMatrix(matrix):
     return np.multiply(matrix, support_matrix).sum()
 
 def getMeans(matrix):
-    mean_x = matrix.sum(axis=1) @ np.array(range(len(matrix)))
-    mean_y = matrix.sum(axis=0) @ np.array(range(len(matrix)))
+    mean_x = matrix.sum(axis=1) @ np.array(range(1, len(matrix) + 1))
+    mean_y = matrix.sum(axis=0) @ np.array(range(1, len(matrix) + 1))
     
     return mean_x, mean_y
 
 def getStd(matrix, mean_x, mean_y):
-    std_x = matrix.sum(axis=1) @ ((np.array(range(len(matrix))) - mean_x)**2)
-    std_y = matrix.sum(axis=0) @ ((np.array(range(len(matrix))) - mean_y)**2)
+    std_x = matrix.sum(axis=1) @ ((np.array(range(1, len(matrix) + 1)) - mean_x)**2)
+    std_y = matrix.sum(axis=0) @ ((np.array(range(1, len(matrix) + 1)) - mean_y)**2)
     
     return std_x**(0.5), std_y**(0.5)
 
@@ -147,3 +147,38 @@ def differenceEntropy(matrix):
     p_xy = Px_y(matrix)
     
     return p_xy @ (p_xy + e)
+
+def hxy1(matrix):
+    e = 1e-30
+    px = matrix.sum(axis=1)
+    py = matrix.sum(axis=0)
+    support_matrix = np.log(np.outer(px, py) + e)
+    
+    return - np.multiply(matrix, support_matrix).sum()
+
+def HX(matrix):
+    e = 1e-30
+    px = matrix.sum(axis=1)
+    
+    return px @ (px + e)
+
+def HY(matrix):
+    e = 1e-30
+    py = matrix.sum(axis=0)
+    
+    return py @ (py + e)
+
+def infoCorrelation1(matrix, entropy):
+    return ( entropy - hxy1(matrix) ) / (max(HX(matrix), HY(matrix)))
+
+def hxy2(matrix):
+    e = 1e-30
+    px = matrix.sum(axis=1)
+    py = matrix.sum(axis=0)
+    support_matrix = np.log(np.outer(px, py) + e)
+    main_matrix = np.outer(px, py)
+    
+    return - np.multiply(main_matrix, support_matrix).sum()
+
+def infoCorrelation2(matrix, entropy):
+    return (1 - np.exp(-2 * (hxy2(matrix) - entropy)))**(0.5)
