@@ -82,22 +82,17 @@ def entropyMatrix(matrix):
     return np.multiply(matrix, np.log(matrix + e)).sum()
 
 def sumAverageMatrix(matrix):
-    sumvector = []
     new_matrix = np.rot90(matrix.copy(), k=3, axes=(0, 1))
     indices = list(range(-len(matrix)+1, len(matrix)))
     indices.reverse()
     
     n = np.array(range(2, len(matrix)*2 + 1))
-    
-    for i in indices:
-        sumvector.append(np.trace(new_matrix, offset=i,))
-    
+    sumvector = [np.trace(new_matrix, offset=i,) for i in indices]
     sumvector = np.array(sumvector)
     
     return n @ sumvector
 
 def sumVarianceMatrix(matrix, sumaverage):
-    sumvector = []
     new_matrix = np.rot90(matrix.copy(), k=3, axes=(0, 1))
     indices = list(range(-len(matrix)+1, len(matrix)))
     indices.reverse()
@@ -106,26 +101,21 @@ def sumVarianceMatrix(matrix, sumaverage):
     n = [(x-sumaverage)**2 for x in n]
     n = np.array(n)
     
-    for i in indices:
-        sumvector.append(np.trace(new_matrix, offset=i,))
-    
+    sumvector = [np.trace(new_matrix, offset=i,) for i in indices]
     sumvector = np.array(sumvector)
     
     return n @ sumvector
 
 def sumEntropyMatrix(matrix):
     e = 1e-30
-    sumentropy = 0
-    
     new_matrix = np.rot90(matrix.copy(), k=3, axes=(0, 1))
     indices = list(range(-len(matrix)+1, len(matrix)))
     indices.reverse()
     
-    for i in indices:
-        intermediate_sum = np.trace(new_matrix, offset=i,)
-        sumentropy += intermediate_sum * np.log(intermediate_sum + e)
+    sumentropy = [np.trace(new_matrix, offset=i,) for i in indices]
+    sumentropy = np.array(sumentropy)
     
-    return -sumentropy
+    return - (sumentropy @ np.log(sumentropy + e)) 
 
 def Px_y(matrix):
     array = []
