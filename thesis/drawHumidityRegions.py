@@ -4,11 +4,10 @@ import os
 import cv2
 from tqdm import tqdm
 import numpy as np
-import pandas as pd
 
 labels_path = r'/home/nicolas/Documents/tesis'
 images_path = r'/home/nicolas/Documents/tesis/imagenes_tesis'
-new_images_path = r'/home/nicolas/Documents/tesis/imagesWithRegions'
+new_images_path = r'/home/nicolas/Documents/tesis/regions'
 
 data = open(labels_path + '/labels.json',)
 labels = json.load(data)
@@ -17,6 +16,7 @@ os.chdir(images_path)
 images = os.listdir()
 os.chdir(new_images_path)
 
+"""
 def isHUmidity(img_processed):
     humidity = []
     img_processed_bool = img_processed == np.array([255, 0, 0])
@@ -39,28 +39,27 @@ def isHUmidity(img_processed):
     points = points.copy().loc[points['humidity'] == 1].reset_index(drop=True)
     
     return points
-
+"""
 
 for file in tqdm(images):
     try:
         path = images_path + '/' + file
         pic = cv2.imread(path,)
-        img = Image.fromarray(pic)
+        
+        mask = np.zeros((pic.shape[0], pic.shape[1])).astype(np.uint8)
+        img = Image.fromarray(mask)
         draw = ImageDraw.Draw(img)
         
         for i in list(labels[file]['regions'].keys()):
             coordinates = [(x,y) for x,y in zip(labels[file]['regions'][i]['shape_attributes']['all_points_x'], 
                                                 labels[file]['regions'][i]['shape_attributes']['all_points_y'])]
             
-            draw.polygon(tuple(coordinates), fill=(255, 0, 0), outline=(255, 0, 0))
+            draw.polygon(tuple(coordinates), fill=(1), outline=(1))
         
-        img.save(file)
-        
-        img_processed = np.array(img)
-        points = isHUmidity(img_processed)
-        points['file'] = file
-        csv_name = file.split('.')[0]
-        points.to_csv( r'/home/nicolas/Documents/tesis/csv_data/' +  csv_name + '.csv', index=False)
-        
-    except:
-        pass
+        img_processed = np.array(img).astype(np.uint8)
+        name = file.split('.')[0]
+        np.savetxt(name, img_processed)
+        # imageio.imwrite(file, img_processed)
+        # cv2.imwrite(file, img_processed)
+    except Exception as e:
+        print(e)
